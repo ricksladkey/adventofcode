@@ -8,7 +8,7 @@ DATA = "L5, R1, R4, L5, L4, R3, R1, L1, R4, R5, L1, L3, R4, L2, L4, R2, L4, L1, 
 
 ORIENTATIONS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
-def day1(data):
+def day1a(data):
 
     # Move from position and orientation using instructed direction and distance.
     def move(state, instruction):
@@ -20,7 +20,7 @@ def day1(data):
             position[0] + new_orientation[0] * distance,
             position[1] + new_orientation[1] * distance,
         )
-        print(position, orientation, direction, distance, new_position, new_orientation)
+        #print(position, orientation, direction, distance, new_position, new_orientation)
         return new_position, new_orientation
 
     # Parse serialized data into instructions.
@@ -44,5 +44,53 @@ def day1(data):
     print('distance {0}'.format(abs(position[0]) + abs(position[1])))
 
 
+def day1b(data):
+
+    # Move from position and orientation using instructed direction and distance.
+    def move(state, instruction):
+        position, orientation, visited = state
+        direction, distance = instruction
+        rotation = 3 if direction == 'L' else 1
+        new_orientation = ORIENTATIONS[(ORIENTATIONS.index(orientation) + rotation) % 4]
+        return (
+            Seq(range(distance))
+                .fold_left((position, new_orientation, visited), step)
+        )
+
+    def step(state, step_number):
+        position, orientation, visited = state
+        if position in visited:
+            #print(position)
+            return state
+        else:
+            new_position = (
+                position[0] + orientation[0] * 1,
+                position[1] + orientation[1] * 1,
+            )
+            #print(position, new_position)
+            return new_position, orientation, (visited | set([position]))
+
+    # Parse serialized data into instructions.
+    instructions = (
+        Seq(data.split(', '))
+            .map(lambda arg: (arg[0], int(arg[1:])))
+            .tolist()
+    )
+
+    # Initial position and orientation.
+    initial_state = ((0, 0), (0, 1), set())
+
+    # Apply instructions repeatedly to current position and orentation.
+    state = (
+        Seq(instructions)
+            .fold_left(initial_state, move)
+    )
+
+    # Print out distance in blocks from the origin.
+    position, orientation, visited = state
+    print('distance {0}'.format(abs(position[0]) + abs(position[1])))
+
+
 if __name__ == '__main__':
-    day1(DATA)
+    day1a(DATA)
+    day1b(DATA)
